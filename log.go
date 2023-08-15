@@ -82,13 +82,13 @@ type logHandler struct {
 func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		w.Write([]byte(h.current.Level().String()))
+		_, _ = w.Write([]byte(h.current.Level().String()))
 	case http.MethodPut, http.MethodPost:
 		// extract level from last path of URL
 		xs := strings.Split(r.URL.Path, "/")
 		if len(xs) == 0 {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("specify log level as last part of the URL, e.g. PUT /log/debug"))
+			_, _ = w.Write([]byte("specify log level as last part of the URL, e.g. PUT /log/debug"))
 			return
 		}
 		x := xs[len(xs)-1]
