@@ -1,10 +1,12 @@
 package slogging
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 )
 
@@ -90,5 +92,20 @@ func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		slog.Info("log level reset", "newLevel", h.init)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+// log build info (go version, commit, date) at startup
+// remember to build the application without specifying the .go file, e.g. "go build -o main", _not_ "go build -o main main.go"
+func LogBuildInfo() {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		var attrs []slog.Attr
+		attrs = append(attrs, slog.String("goVersion", info.GoVersion))
+		for _, kv := range info.Settings {
+			if strings.HasPrefix(kv.Key, "vcs") {
+				attrs = append(attrs, slog.String(kv.Key, kv.Value))
+			}
+		}
+		slog.LogAttrs(context.Background(), slog.LevelInfo, "build info", attrs...)
 	}
 }
