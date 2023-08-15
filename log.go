@@ -23,6 +23,12 @@ func init() {
 	}
 }
 
+func Levels() []slog.Level {
+	result := make([]slog.Level, len(levels))
+	copy(result, levels)
+	return result
+}
+
 func LevelsString() string {
 	xs := make([]string, 0, len(levels))
 	for _, level := range levels {
