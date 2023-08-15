@@ -100,12 +100,12 @@ func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		h.current.Set(lvl)
 		w.WriteHeader(http.StatusAccepted)
-		slog.Info("log level set", "newLevel", lvl)
+		slog.LogAttrs(context.Background(), slog.LevelInfo, "log level set", slog.String("newLevel", lvl.String()))
 
 	case http.MethodDelete:
 		h.current.Set(h.init)
 		w.WriteHeader(http.StatusAccepted)
-		slog.Info("log level reset", "newLevel", h.init)
+		slog.LogAttrs(context.Background(), slog.LevelInfo, "log level reset", slog.String("newLevel", h.init.String()))
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
