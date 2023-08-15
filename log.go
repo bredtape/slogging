@@ -38,8 +38,11 @@ func ParseLevel(s string) (slog.Level, bool) {
 
 // set default slog options and attributes
 // returns a http Handler which can be used to get current log level and
-// update it dynamically
-func SetDefault(level slog.Level, addSource bool, jsonOutput bool, attributes ...slog.Attr) http.Handler {
+// update it dynamically.
+// the Handler must be mapped to a path prefix e.g. with gorilla mux:
+// r := mux.NewRouter()
+// r.PathPrefix("/log").Handler(logHandler)
+func SetDefaults(level slog.Level, addSource bool, jsonOutput bool, attributes ...slog.Attr) http.Handler {
 	v := slog.LevelVar{}
 	v.Set(level)
 
