@@ -42,29 +42,36 @@ func ParseLevel(s string) (slog.Level, bool) {
 	return level, ok
 }
 
-// set default slog options and attributes
+// create logger with options and attributes
 // returns a http Handler which can be used to get current log level and
 // update it dynamically.
 // the Handler must be mapped to a path prefix e.g. with gorilla mux:
 // r := mux.NewRouter()
 // r.PathPrefix("/log").Handler(logHandler)
-func SetDefaults(level slog.Level, addSource bool, jsonOutput bool, attributes ...slog.Attr) http.Handler {
+func Create(opts slog.HandlerOptions, jsonOutput bool, attrs ...slog.Attr) (*slog.Logger, http.Handler) {
 	v := slog.LevelVar{}
-	v.Set(level)
+	v.Set(opts.Level.Level())
 
-	opts := &slog.HandlerOptions{
-		Level:     &v,
-		AddSource: addSource}
+	o := &slog.HandlerOptions{
+		Level:       &v,
+		AddSource:   opts.AddSource,
+		ReplaceAttr: opts.ReplaceAttr}
+
+	h := logHandler{
+		init:    opts.Level.Level(),
+		current: &v}
 
 	if jsonOutput {
-		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, opts).WithAttrs(attributes)))
-	} else {
-		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, opts).WithAttrs(attributes)))
+		return slog.New(slog.NewJSONHandler(os.Stderr, o).WithAttrs(attrs)), h
 	}
+	return slog.New(slog.NewTextHandler(os.Stderr, o).WithAttrs(attrs)), h
+}
 
-	return logHandler{
-		init:    level,
-		current: &v}
+// create logger (using Create) and sets the default logger
+func SetDefaults(opts slog.HandlerOptions, jsonOutput bool, attributes ...slog.Attr) http.Handler {
+	logger, handler := Create(opts, jsonOutput, attributes...)
+	slog.SetDefault(logger)
+	return handler
 }
 
 type logHandler struct {
