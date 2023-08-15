@@ -111,8 +111,10 @@ func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// log build info (go version, commit, date) at startup
-// remember to build the application without specifying the .go file, e.g. "go build -o main", _not_ "go build -o main main.go"
+// log build info (go version and vcs revision, time and modified) at startup to Info level.
+// Remember to build the application without specifying the .go file,
+// e.g. "go build -o main", _not_ "go build -o main main.go"
+// See issue https://github.com/golang/go/issues/51279
 func LogBuildInfo() {
 	if info, ok := debug.ReadBuildInfo(); ok {
 		var attrs []slog.Attr
