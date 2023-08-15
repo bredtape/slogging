@@ -111,7 +111,7 @@ func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// log build info (go version and vcs revision, time and modified) at startup to Info level.
+// log build info (go version and vcs revision, time and modified) to Info level.
 // Remember to build the application without specifying the .go file,
 // e.g. "go build -o main", _not_ "go build -o main main.go"
 // See issue https://github.com/golang/go/issues/51279
