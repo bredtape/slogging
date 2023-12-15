@@ -10,38 +10,6 @@ import (
 	"strings"
 )
 
-var (
-	// ordered list of levels
-	levels   = []slog.Level{slog.LevelDebug, slog.LevelInfo, slog.LevelWarn, slog.LevelError}
-	levelMap map[string]slog.Level
-)
-
-func init() {
-	levelMap = make(map[string]slog.Level)
-	for _, level := range levels {
-		levelMap[strings.ToLower(level.String())] = level
-	}
-}
-
-func Levels() []slog.Level {
-	result := make([]slog.Level, len(levels))
-	copy(result, levels)
-	return result
-}
-
-func LevelsString() string {
-	xs := make([]string, 0, len(levels))
-	for _, level := range levels {
-		xs = append(xs, level.String())
-	}
-	return strings.Join(xs, ", ")
-}
-
-func ParseLevel(s string) (slog.Level, bool) {
-	level, ok := levelMap[strings.ToLower(s)]
-	return level, ok
-}
-
 // create logger with options and attributes
 // returns a http Handler which can be used to get current log level and
 // update it dynamically.
@@ -91,11 +59,12 @@ func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("specify log level as last part of the URL, e.g. PUT /log/debug"))
 			return
 		}
-		x := xs[len(xs)-1]
-		lvl, exists := ParseLevel(x)
-		if !exists {
+		lastPart := xs[len(xs)-1]
+		var lvl slog.Level
+		err := lvl.UnmarshalText([]byte(lastPart))
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "unknown log level %q, specify one of %s", x, LevelsString())
+			fmt.Fprintf(w, "unknown log level %q", lastPart)
 			return
 		}
 		h.current.Set(lvl)
