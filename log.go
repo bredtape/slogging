@@ -112,18 +112,23 @@ func (h logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // log build info (go version and vcs revision, time and modified) to Info level.
+// Returns true if some build info was found.
 // Remember to build the application without specifying the .go file,
 // e.g. "go build -o main", _not_ "go build -o main main.go"
 // See issue https://github.com/golang/go/issues/51279
-func LogBuildInfo() {
-	if info, ok := debug.ReadBuildInfo(); ok {
-		var attrs []slog.Attr
-		attrs = append(attrs, slog.String("goVersion", info.GoVersion))
-		for _, kv := range info.Settings {
-			if strings.HasPrefix(kv.Key, "vcs") {
-				attrs = append(attrs, slog.String(kv.Key, kv.Value))
-			}
-		}
-		slog.LogAttrs(context.Background(), slog.LevelInfo, "build info", attrs...)
+func LogBuildInfo() bool {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return false
 	}
+
+	var attrs []slog.Attr
+	attrs = append(attrs, slog.String("goVersion", info.GoVersion))
+	for _, kv := range info.Settings {
+		if strings.HasPrefix(kv.Key, "vcs") {
+			attrs = append(attrs, slog.String(kv.Key, kv.Value))
+		}
+	}
+	slog.LogAttrs(context.Background(), slog.LevelInfo, "build info", attrs...)
+	return true
 }
