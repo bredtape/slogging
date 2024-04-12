@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+// will log to ERROR+4 and call os.Exit(1)
+func Fatal(log *slog.Logger, message string, args ...any) {
+	log.Log(context.Background(), slog.LevelError+4, message, args...)
+	os.Exit(1)
+}
+
 // create logger with options and attributes
 // returns a http Handler which can be used to get current log level and
 // update it dynamically.
